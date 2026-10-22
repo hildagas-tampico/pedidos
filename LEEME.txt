@@ -1,0 +1,16 @@
+HILDA GAS — PAQUETE PWA
+
+1. Conserva una copia de tu index.html actual.
+2. Sube index.html, logo.png, manifest.webmanifest, sw.js y la carpeta icons
+   a la misma carpeta de tu repositorio catalogo-gas.
+3. NO borres precios.json. No se incluye en este paquete.
+4. Espera a que GitHub Pages termine la publicación.
+5. Abre https://luismhz-dotcom.github.io/catalogo-gas/ en Chrome de Android.
+6. Prueba precios, un pedido autorizado de prueba y WhatsApp antes de distribuir.
+7. Instala desde el botón si aparece, o desde el menú de Chrome.
+
+La PWA no envía pedidos sin internet ni confirma entregas.
+El servidor sigue validando y cotizando como en tu formulario original.
+La prevención de duplicados depende también de Apps Script.
+Para publicar futuras versiones cambia la versión de caché en sw.js.
+No se ha verificado la publicación ni la instalación desde este preparador.
