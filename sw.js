@@ -1,8 +1,8 @@
 "use strict";
 
-// Cambiar esta versión cuando se publique otra actualización.
+// Nueva versión: diseño profesional con logo original.
 const CACHE_PREFIX = "hilda-pwa:" + self.registration.scope + ":";
-const CACHE_NAME = CACHE_PREFIX + "v20261023-01";
+const CACHE_NAME = CACHE_PREFIX + "v20261023-03";
 
 const BASE = new URL(self.registration.scope);
 const INDEX = new URL("index.html", BASE).href;
@@ -13,8 +13,7 @@ const REQUIRED_ASSETS = [
   INDEX
 ];
 
-// Si falta un icono, no bloquea la actualización del catálogo.
-// Esto no sustituye la creación de los iconos necesarios para instalar la PWA.
+// Si falta un recurso opcional, no bloquea la actualización.
 const OPTIONAL_ASSETS = [
   new URL("logo.png", BASE).href,
   new URL("manifest.webmanifest", BASE).href,
@@ -32,23 +31,27 @@ self.addEventListener("install", event => {
 
     for (const url of REQUIRED_ASSETS) {
       const response = await fetch(url, {cache:"reload"});
+
       if (!response.ok) {
         throw new Error("No se pudo cargar el catálogo: " + url);
       }
+
       await cache.put(url, response);
     }
 
     await Promise.all(OPTIONAL_ASSETS.map(async url => {
       try {
         const response = await fetch(url, {cache:"reload"});
-        if (response.ok) await cache.put(url, response);
+
+        if (response.ok) {
+          await cache.put(url, response);
+        }
       } catch (_) {
         // Un recurso opcional ausente no impide instalar la actualización.
       }
     }));
 
-    // No usar skipWaiting aquí.
-    // La aplicación pide autorización antes de activar una actualización.
+    // La actualización espera autorización desde el catálogo.
   })());
 });
 
@@ -56,9 +59,13 @@ self.addEventListener("activate", event => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
 
-    await Promise.all(keys
-      .filter(key => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME)
-      .map(key => caches.delete(key)));
+    await Promise.all(
+      keys
+        .filter(key =>
+          key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME
+        )
+        .map(key => caches.delete(key))
+    );
 
     await self.clients.claim();
   })());
@@ -78,19 +85,21 @@ self.addEventListener("fetch", event => {
   if (request.method !== "GET" || url.origin !== BASE.origin) return;
   if (!url.href.startsWith(BASE.href)) return;
 
-  // Consultar precios por internet; nunca guardarlos en caché.
+  // Los precios se consultan por internet y no se guardan en caché.
   if (url.pathname === PRECIOS_PATH) {
     event.respondWith(fetch(request, {cache:"no-store"}));
     return;
   }
 
-  const home = url.pathname === BASE.pathname ||
+  const home =
+    url.pathname === BASE.pathname ||
     url.pathname === new URL("index.html", BASE).pathname;
 
   if (request.mode === "navigate" && home) {
     event.respondWith((async () => {
       try {
         const response = await fetch(request, {cache:"no-cache"});
+
         if (response.ok) return response;
 
         const saved = await caches.match(INDEX, {
@@ -109,7 +118,9 @@ self.addEventListener("fetch", event => {
           "Sin conexión. Conéctate a internet para abrir el catálogo.",
           {
             status:503,
-            headers:{"Content-Type":"text/plain;charset=utf-8"}
+            headers:{
+              "Content-Type":"text/plain;charset=utf-8"
+            }
           }
         );
       }
@@ -119,6 +130,7 @@ self.addEventListener("fetch", event => {
   }
 
   const canonical = url.origin + url.pathname;
+
   if (!ASSETS.includes(canonical)) return;
 
   event.respondWith((async () => {
