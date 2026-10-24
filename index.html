@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0c087c">
+  <title>Hilda Gas Tampico</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Hilda Gas">
+  <style>
+    :root{
+      --azul:#0c087c;--azul-boton:#17117e;--azul-hover:#25209e;
+      --cielo:#00afd5;--cielo-claro:#e9f9fd;--fondo:#f4f7fc;
+      --borde:#dfe6f2;--texto:#64748b;--oscuro:#283953;--verde:#128c4a;
+      --sombra:0 8px 28px rgba(23,37,79,.045);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;background:var(--fondo);
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      color:var(--azul);line-height:1.5;-webkit-font-smoothing:antialiased;
+    }
+    button,input,select,textarea{font:inherit}
+    button,a,input,select,textarea{-webkit-tap-highlight-color:transparent}
+    button{cursor:pointer;touch-action:manipulation}
+    button:disabled{opacity:.48;cursor:not-allowed}
+    [hidden]{display:none!important}
+    :focus-visible{outline:3px solid var(--cielo);outline-offset:4px}
+
+    /* Bienvenida interna: sin círculo y sin deformar el logo. */
+    .bienvenida{
+      position:fixed;inset:0;z-index:9999;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:22px;padding:24px;background:#0c087c;color:white;
+    }
+    .bienvenida img{
+      display:block;width:min(90vw,680px);height:auto;
+      max-height:70vh;object-fit:contain;
+    }
+    .bienvenida p{
+      margin:0;font-size:13px;letter-spacing:.3px;color:#d4def8;
+      text-align:center;
+    }
+
+    .cabecera{
+      background:linear-gradient(125deg,#0c087c 0%,#242397 100%);
+      border-bottom:3px solid var(--cielo);color:white;
+    }
+    .marca{
+      max-width:1040px;margin:auto;padding:20px 28px;
+      display:flex;align-items:center;justify-content:space-between;
+      gap:24px;min-height:150px;
+    }
+    .logo{
+      width:340px;max-width:55%;flex:0 1 340px;min-width:0;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .logo img{
+      display:block;width:100%;height:auto;object-fit:contain;
+    }
+    .nombre{text-align:right;min-width:0}
+    h1{font-size:28px;margin:0;font-weight:750;letter-spacing:-.6px;line-height:1.2}
+    .nombre p{font-size:13px;color:#d4def8;margin:8px 0 0}
+    .marca-etiqueta{
+      display:inline-block;margin-top:12px;padding:5px 11px;border-radius:30px;
+      background:rgba(255,255,255,.1);color:#d5f8ff;font-size:11px;
+      font-weight:650;letter-spacing:.5px;
+    }
+    main{max-width:880px;margin:24px auto;padding:0 24px 32px}
+    .panel{
+      background:white;border:1px solid var(--borde);border-radius:22px;
+      padding:26px;margin-bottom:22px;box-shadow:var(--sombra);
+    }
+    .precios{padding:20px 26px}
+    .precios-titulo{
+      margin:0 0 14px;color:var(--texto);font-size:11px;font-weight:750;
+      letter-spacing:1.3px;text-transform:uppercase;
+    }
+    .precios-fila{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+    .precio+.precio{border-left:1px solid var(--borde);padding-left:24px}
+    .precio span{display:block;color:var(--texto);font-size:13px}
+    .precio strong{display:block;font-size:30px;font-weight:750;letter-spacing:-.7px;margin-top:3px}
+    .fecha{margin:15px 0 0;color:var(--texto);font-size:11px}
+    .introduccion{margin:28px 2px 20px}
+    .eyebrow{
+      margin:0 0 9px;color:#087f98;font-size:11px;font-weight:750;
+      letter-spacing:1px;text-transform:uppercase;
+    }
+    h2{margin:0;font-size:29px;line-height:1.25;font-weight:750;letter-spacing:-.7px}
+    .introduccion>p:last-child{color:var(--texto);margin:10px 0 0;font-size:14px}
+    h3{
+      display:flex;align-items:center;gap:12px;margin:0 0 22px;
+      font-size:21px;font-weight:750;letter-spacing:-.3px;line-height:1.3;
+    }
+    .numero{
+      display:inline-flex;align-items:center;justify-content:center;width:33px;height:33px;
+      background:var(--cielo-claro);color:#07849d;border-radius:11px;
+      font-size:14px;flex-shrink:0;letter-spacing:0;
+    }
+    .opciones{display:grid;grid-template-columns:1fr;gap:16px}
+    .opcion{
+      width:100%;min-height:138px;padding:20px;border:1px solid var(--borde);
+      border-radius:18px;background:white;color:var(--azul);display:flex;
+      align-items:center;gap:20px;text-align:left;position:relative;
+      transition:background .15s,border-color .15s,box-shadow .15s;
+    }
+    .opcion:hover:not(:disabled){background:#f3fbff;border-color:var(--cielo)}
+    .opcion[aria-pressed="true"]{
+      background:var(--cielo-claro);border-color:var(--cielo);
+      box-shadow:0 0 0 1px var(--cielo);
+    }
+    .opcion::after{
+      content:"";width:9px;height:9px;border-right:2px solid #8a98ad;
+      border-top:2px solid #8a98ad;transform:rotate(45deg);flex-shrink:0;
+      margin-left:auto;margin-right:4px;
+    }
+    .opcion[aria-pressed="true"]::after{border-color:#079bb8}
+    .icono-tarjeta{
+      display:flex;align-items:center;justify-content:center;width:112px;height:96px;
+      border-radius:16px;background:#f0f4fc;flex-shrink:0;
+    }
+    .opcion[aria-pressed="true"] .icono-tarjeta{background:rgba(255,255,255,.8)}
+    .dibujo{display:block;width:105px;height:85px}
+    .texto-opcion{display:flex;flex-direction:column;gap:7px;min-width:0}
+    .texto-opcion .mini{
+      color:#6c7e96;font-size:10px;font-weight:750;letter-spacing:.7px;text-transform:uppercase;
+    }
+    .opcion strong{font-size:19px;line-height:1.3;font-weight:750}
+    .opcion small{color:var(--texto);font-size:13px;line-height:1.4}
+    .campo{margin-bottom:19px}
+    label{display:block;font-size:13px;font-weight:650;color:var(--oscuro);margin-bottom:8px}
+    input,select,textarea{
+      width:100%;color:var(--azul);background:white;border:1px solid #ccd7e8;
+      border-radius:12px;padding:13px 14px;font-size:16px;min-height:49px;
+    }
+    input::placeholder,textarea::placeholder{color:#8a97aa}
+    input:focus,select:focus,textarea:focus{border-color:var(--cielo)}
+    textarea{min-height:96px;resize:vertical}
+    .dos{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .resumen{
+      background:#f8faff;border:1px solid var(--borde);border-radius:16px;
+      padding:18px;overflow-wrap:anywhere;
+    }
+    .resumen p{margin:0;padding:8px 0;color:var(--oscuro);font-size:14px}
+    .resumen p+p{border-top:1px solid #e8edf6}
+    .acciones{
+      display:flex;align-items:stretch;justify-content:center;flex-wrap:wrap;
+      margin-top:22px;gap:12px;
+    }
+    .principal{
+      display:inline-flex;align-items:center;justify-content:center;gap:10px;
+      background:var(--azul-boton);color:white;border:1px solid var(--azul-boton);
+      border-radius:13px;padding:14px 23px;min-height:51px;font-weight:700;
+      font-size:15px;text-align:center;text-decoration:none;line-height:1.35;
+      transition:background .15s,border-color .15s;
+    }
+    .principal:hover:not(:disabled){background:var(--azul-hover);border-color:var(--azul-hover)}
+    .principal.secundario{background:white;color:var(--azul-boton);border:1px solid var(--azul-boton)}
+    .principal.secundario:hover:not(:disabled){background:#eef2fc}
+    .principal.whatsapp{background:var(--verde);color:white;border-color:var(--verde)}
+    .principal.whatsapp:hover{background:#0d713b;border-color:#0d713b}
+    .principal svg{width:22px;height:22px;flex-shrink:0}
+    .principal.whatsapp svg{width:25px;height:25px;fill:currentColor}
+    .ancho{width:100%}
+    .ayuda{font-size:12px;color:var(--texto);margin:13px 0;line-height:1.65}
+    .check{
+      display:flex;align-items:flex-start;gap:11px;font-weight:400;
+      font-size:13px;line-height:1.65;margin:15px 0;
+    }
+    .check input{
+      width:19px;height:19px;min-height:0;margin:3px 0 0;padding:0;
+      flex-shrink:0;accent-color:var(--azul-boton);
+    }
+    .aviso{
+      padding:16px 18px;border:1px solid #bde9f3;border-radius:14px;
+      background:var(--cielo-claro);color:#175f78;font-size:13px;
+      margin-bottom:18px;overflow-wrap:anywhere;line-height:1.65;
+    }
+    .error{border-color:#edbebe;background:#fff3f3;color:#902d2d}
+    .recordar{
+      background:#f5f8fe;border:1px solid var(--borde);border-radius:16px;
+      padding:16px 18px;margin:22px 0;
+    }
+    .recordar .check{margin:0}
+    .recordar .ayuda:last-child{margin-bottom:0}
+    .trampa{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+    .centrado{text-align:center}
+    .pie{font-size:11px;color:#7b899f;text-align:center;margin-top:28px;line-height:1.8}
+    .pwa-bar{
+      background:white;border:1px solid var(--borde);border-radius:16px;
+      padding:17px 19px;margin-bottom:18px;box-shadow:var(--sombra);
+    }
+    .pwa-bar strong{font-size:14px}
+    .pwa-bar p{margin:6px 0 13px;color:var(--texto);font-size:12px;line-height:1.6}
+    .pwa-bar .principal{font-size:13px;min-height:45px;padding:11px 17px}
+    #pwaOffline{background:#fff3f3;border-color:#edbebe;color:#902d2d;font-size:13px}
+    #pasoRecipiente,#pasoDetalle,#pasoEntrega,#revision,#resultado,#inicio{scroll-margin-top:22px}
+    .final-cabecera{text-align:center;margin-bottom:23px}
+    .exito-icono{
+      width:65px;height:65px;border-radius:50%;background:#e1f5eb;
+      margin:0 auto 16px;display:flex;align-items:center;justify-content:center;
+    }
+    .exito-icono svg{width:39px;height:39px}
+    .final-cabecera h3{display:block;font-size:28px;margin:0 0 10px;letter-spacing:-.6px}
+    .final-cabecera p{margin:0;color:var(--texto);font-size:14px}
+    .folio-tarjeta{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:19px;border:1px solid #dce4f5;border-radius:16px;
+      background:#edf1fc;margin-bottom:20px;
+    }
+    .folio-tarjeta small{
+      display:block;color:var(--texto);font-size:10px;font-weight:750;
+      letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;
+    }
+    #folioResultado{font-size:24px;font-weight:750;letter-spacing:-.5px;overflow-wrap:anywhere}
+    .estado-folio{
+      background:#dcefe5;color:#21835a;font-size:11px;font-weight:700;
+      padding:6px 10px;border-radius:25px;flex-shrink:0;
+    }
+    .subtitulo-resumen{font-size:15px;font-weight:750;margin:0 0 12px}
+    #resultado .acciones{margin-top:18px}
+    #resultado .principal{width:100%}
+    @media(min-width:700px){
+      #resultado,#revision{max-width:690px;margin-left:auto;margin-right:auto}
+      #pasoRecipiente .opciones{grid-template-columns:1fr 1fr}
+      #pasoRecipiente .opcion{flex-direction:column;text-align:center;padding:22px}
+      #pasoRecipiente .opcion::after{display:none}
+      #pasoRecipiente .texto-opcion{align-items:center}
+    }
+    @media(max-width:560px){
+      .marca{padding:16px 18px;gap:12px;min-height:126px}
+      .logo{width:190px;flex-basis:190px;max-width:55%}
+      h1{font-size:20px;letter-spacing:-.4px}
+      .nombre p{font-size:11px;margin-top:6px}
+      .marca-etiqueta{font-size:9px;padding:4px 8px;margin-top:9px}
+      main{padding:0 16px 25px;margin-top:18px}
+      .panel{padding:20px;border-radius:19px;margin-bottom:18px}
+      .precios{padding:18px 20px}
+      .precio strong{font-size:28px}
+      .precios-fila{gap:18px}
+      .precio+.precio{padding-left:18px}
+      h2{font-size:25px}
+      h3{font-size:20px;gap:10px}
+      .introduccion{margin:25px 1px 18px}
+      .introduccion>p:last-child{font-size:13px}
+      .opcion{min-height:126px;padding:14px;gap:13px;border-radius:16px}
+      .icono-tarjeta{width:84px;height:84px;border-radius:13px}
+      .dibujo{width:82px;height:72px}
+      .opcion strong{font-size:16px}
+      .opcion small{font-size:11px}
+      .texto-opcion .mini{font-size:8px;letter-spacing:.5px}
+      .texto-opcion{gap:6px}
+      .opcion::after{width:7px;height:7px;margin-right:0}
+      .dos{grid-template-columns:1fr;gap:0}
+      .principal{width:100%;padding:14px 12px;font-size:14px}
+      .resumen{padding:15px}
+      .resumen p{font-size:13px}
+      .final-cabecera h3{font-size:25px}
+      .final-cabecera p{font-size:13px}
+      #folioResultado{font-size:21px}
+      .folio-tarjeta{padding:16px}
+      .estado-folio{font-size:10px;padding:5px 8px}
+    }
+    @media(max-width:360px){
+      main{padding-left:11px;padding-right:11px}
+      .marca{padding-left:12px;padding-right:12px}
+      .logo{width:160px;flex-basis:160px}
+      h1{font-size:17px}
+      .panel{padding:16px}
+      .icono-tarjeta{width:66px;height:74px}
+      .dibujo{width:65px;height:65px}
+      .opcion{gap:10px;padding:12px}
+      .opcion strong{font-size:15px}
+      .texto-opcion .mini{font-size:7px}
+    }
+    @media(prefers-reduced-motion:reduce){
+      *{transition:none!important;scroll-behavior:auto!important}
+    }
+  </style>
+</head>
+<body>
+  <div id="bienvenida" class="bienvenida" role="status" aria-label="Cargando catálogo de Hilda Gas">
+    <img src="./logo.png?v=20261024-01" alt="Hilda Gas"
+         width="966" height="540" fetchpriority="high">
+    <p>Cargando catálogo…</p>
+  </div>
+  <script>
+  (() => {
+    const bienvenida = document.getElementById("bienvenida");
+    const imagen = bienvenida.querySelector("img");
+    const inicio = Date.now();
+    let programado = false;
+    function cerrar(){
+      if(programado) return;
+      programado = true;
+      setTimeout(() => bienvenida.remove(), Math.max(0,1400-(Date.now()-inicio)));
+    }
+    if(imagen.complete) cerrar();
+    else{
+      imagen.addEventListener("load",cerrar,{once:true});
+      imagen.addEventListener("error",cerrar,{once:true});
+    }
+    setTimeout(() => bienvenida.remove(),3000);
+  })();
+  </script>
+  <noscript>
+    <style>#bienvenida{display:none!important}</style>
+    <p class="aviso">Activa JavaScript para consultar precios y realizar pedidos.</p>
+  </noscript>
+
+  <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" style="position:absolute">
+    <defs>
+      <symbol id="icono-relleno" viewBox="0 0 160 100">
+        <g stroke="#0c087c" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 70v14M98 70v14" stroke-width="5"/>
+          <rect x="12" y="32" width="98" height="39" rx="20" fill="#ddf7fc"/>
+          <path d="M29 39h59" stroke="#00afd5" stroke-width="5"/>
+          <path d="M57 31v-9h13v9M55 17h15M63 17v5" fill="none"/>
+          <rect x="122" y="30" width="29" height="47" rx="11" fill="#00afd5"/>
+          <path d="M122 65h29M127 24h18v8M135 17h5v7M127 83h20" fill="none"/>
+        </g>
+      </symbol>
+      <symbol id="icono-intercambio" viewBox="0 0 160 100">
+        <g stroke="#0c087c" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="55" y="23" width="49" height="62" rx="16" fill="#ddf7fc"/>
+          <path d="M63 23V13h33v10M75 13V6h9v7M57 70h45M62 90h35" fill="none"/>
+        </g>
+        <g fill="#0c087c" font-family="Arial,sans-serif" text-anchor="middle">
+          <text x="80" y="55" font-size="16" font-weight="bold">30</text>
+          <text x="80" y="67" font-size="9">kg</text>
+        </g>
+        <g fill="none" stroke="#00afd5" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M31 37v26h12M35 57l8 6-8 7"/>
+          <path d="M129 65V39h-12M124 32l-7 7 7 6"/>
+        </g>
+      </symbol>
+      <symbol id="icono-estacionario" viewBox="0 0 160 100">
+        <g stroke="#0c087c" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M38 70v14M122 70v14" stroke-width="5"/>
+          <rect x="20" y="31" width="120" height="40" rx="20" fill="#ddf7fc"/>
+          <path d="M38 39h82" stroke="#00afd5" stroke-width="5"/>
+          <path d="M73 30v-9h14v9M71 16h18M80 16v5" fill="none"/>
+        </g>
+      </symbol>
+      <symbol id="icono-cilindro" viewBox="0 0 160 100">
+        <g stroke="#0c087c" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="58" y="25" width="44" height="59" rx="15" fill="#00afd5"/>
+          <path d="M65 25V15h30v10M76 15V8h8v7M60 69h40M65 90h30" fill="none"/>
+        </g>
+      </symbol>
+    </defs>
+  </svg>
+
+  <header class="cabecera">
+    <div class="marca">
+      <div class="logo">
+        <img src="./logo.png?v=20261024-01" alt="Logo de Hilda Gas"
+             width="966" height="540" decoding="async">
+      </div>
+      <div class="nombre">
+        <h1>Hilda Gas Tampico</h1>
+        <p>Pedidos de Gas LP</p>
+        <span class="marca-etiqueta">SERVICIO A DOMICILIO</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="pwaInstallBox" class="pwa-bar">
+      <strong>Hilda Gas Tampico en tu celular</strong>
+      <p id="pwaInstallHelp">En Chrome, abre el menú ⋮ y busca “Instalar aplicación” o “Agregar a pantalla de inicio”. También puedes pedir sin instalar.</p>
+      <button id="pwaInstallButton" type="button" class="principal" hidden>Instalar Hilda Gas Tampico</button>
+    </section>
+    <div id="pwaOffline" class="pwa-bar" role="status" hidden>
+      Sin conexión. Necesitas internet para consultar precios y registrar pedidos.
+      No se guardarán pedidos para enviarlos después.
+    </div>
+    <div id="pwaUpdateBox" class="pwa-bar" role="status" hidden>
+      <strong>Una nueva versión está disponible</strong>
+      <p>Actualiza antes de comenzar otro pedido.</p>
+      <button id="pwaUpdateButton" type="button" class="principal">Actualizar aplicación</button>
+    </div>
+    <section class="panel precios" aria-label="Precios del gas">
+      <p class="precios-titulo">Precios del Gas LP</p>
+      <div class="precios-fila">
+        <div class="precio"><span>Precio por litro</span><strong id="precioLt">—</strong></div>
+        <div class="precio"><span>Precio por kilo</span><strong id="precioKg">—</strong></div>
+      </div>
+      <p class="fecha" id="fechaPrecios">Cargando archivo de precios…</p>
+    </section>
+    <div id="errorPrecios" class="aviso error" role="alert" hidden></div>
+    <div class="acciones" id="accionesPrecios" hidden>
+      <button id="reintentarPrecios" type="button" class="principal">Reintentar cargar precios</button>
+    </div>
+    <div id="estadoMemoriaGeneral" class="aviso" role="status" hidden></div>
+
+    <div id="catalogo">
+      <div id="avisoRecordados" class="aviso" hidden>
+        <strong id="saludoRecordado"></strong>
+        <p class="ayuda">Tus datos están precargados. Revisa la dirección antes de registrar tu pedido.</p>
+        <button id="olvidarDatos" type="button" class="principal secundario">Olvidar mis datos</button>
+      </div>
+      <div class="introduccion" id="inicio">
+        <p class="eyebrow">Tu pedido, más fácil</p>
+        <h2>¿Qué servicio necesitas?</h2>
+        <p>Selecciona una opción para comenzar tu pedido.</p>
+      </div>
+      <section class="panel">
+        <h3><span class="numero">1</span>Selecciona el servicio</h3>
+        <div class="opciones">
+          <button type="button" class="opcion" data-service="relleno" aria-pressed="false" disabled>
+            <span class="icono-tarjeta"><svg class="dibujo" aria-hidden="true"><use href="#icono-relleno"/></svg></span>
+            <span class="texto-opcion">
+              <span class="mini">Suministro a domicilio</span>
+              <strong>Relleno litros / pesos</strong>
+              <small>Estacionario o cilindro portátil</small>
+            </span>
+          </button>
+          <button type="button" class="opcion" data-service="intercambio" aria-pressed="false" disabled>
+            <span class="icono-tarjeta"><svg class="dibujo" aria-hidden="true"><use href="#icono-intercambio"/></svg></span>
+            <span class="texto-opcion">
+              <span class="mini">Cilindros de Gas LP</span>
+              <strong>Intercambio de cilindro</strong>
+              <small>Elige la capacidad: 20, 30 o 45 kg</small>
+            </span>
+          </button>
+        </div>
+      </section>
+      <section id="pasoRecipiente" class="panel" hidden>
+        <p class="eyebrow">Relleno de Gas LP</p>
+        <h3><span class="numero">2</span>¿Qué deseas rellenar?</h3>
+        <div class="opciones">
+          <button type="button" class="opcion" data-tank="estacionario" aria-pressed="false">
+            <span class="icono-tarjeta"><svg class="dibujo" aria-hidden="true"><use href="#icono-estacionario"/></svg></span>
+            <span class="texto-opcion"><strong>Tanque estacionario</strong></span>
+          </button>
+          <button type="button" class="opcion" data-tank="cilindro" aria-pressed="false">
+            <span class="icono-tarjeta"><svg class="dibujo" aria-hidden="true"><use href="#icono-cilindro"/></svg></span>
+            <span class="texto-opcion"><strong>Cilindro portátil</strong><small>20, 30 o 45 kg</small></span>
+          </button>
+        </div>
+      </section>
+      <section id="pasoDetalle" class="panel" hidden>
+        <p class="eyebrow">Personaliza tu pedido</p>
+        <h3><span class="numero" id="numeroDetalle">3</span><span id="tituloDetalle">Detalles del servicio</span></h3>
+        <div id="campoCapacidad" class="campo" hidden>
+          <label for="capacidad">Capacidad del cilindro</label>
+          <select id="capacidad">
+            <option value="">Selecciona una capacidad</option>
+            <option value="20">20 kg</option><option value="30">30 kg</option><option value="45">45 kg</option>
+          </select>
+        </div>
+        <div id="campoCantidad" class="campo" hidden>
+          <label for="cantidad">Cantidad de cilindros</label>
+          <input id="cantidad" type="number" min="1" max="10" step="1" value="1">
+        </div>
+        <div id="campoModalidad" class="campo" hidden>
+          <label for="modalidad">¿Cómo deseas pedir el relleno?</label>
+          <select id="modalidad">
+            <option value="">Selecciona una modalidad</option>
+            <option value="litros">Por litros</option><option value="pesos">Por pesos</option><option value="lleno">Lleno</option>
+          </select>
+        </div>
+        <div id="campoValor" class="campo" hidden>
+          <label id="labelValor" for="valor">Cantidad</label>
+          <input id="valor" type="number" min="0.01" max="100000" step="0.01" inputmode="decimal">
+        </div>
+        <div id="avisoLimite" class="aviso" role="status" aria-live="polite" hidden></div>
+        <div id="errorDetalle" class="aviso error" role="alert" hidden></div>
+        <div id="resumenServicio" class="resumen" aria-live="polite"></div>
+        <p class="ayuda">
+          El suministro está sujeto a la capacidad segura del recipiente y a la verificación del operador.
+          El importe de relleno es estimado. Los límites mostrados no sustituyen la revisión de seguridad.
+        </p>
+        <div class="acciones">
+          <button id="continuar" type="button" class="principal ancho" disabled>Continuar con datos de entrega</button>
+        </div>
+      </section>
+      <section id="pasoEntrega" class="panel" hidden>
+        <p class="eyebrow">¿Dónde entregamos?</p>
+        <h3><span class="numero" id="numeroEntrega">4</span>Datos de entrega</h3>
+        <form id="formPedido">
+          <div class="dos">
+            <div class="campo">
+              <label for="nombre">Nombre *</label>
+              <input id="nombre" name="nombre" autocomplete="given-name" maxlength="60" required>
+            </div>
+            <div class="campo">
+              <label for="apellido">Apellido *</label>
+              <input id="apellido" name="apellido" autocomplete="family-name" maxlength="60" required>
+            </div>
+          </div>
+          <div class="campo">
+            <label for="telefono">Teléfono de contacto *</label>
+            <input id="telefono" name="telefono" type="tel" autocomplete="tel" placeholder="10 dígitos o +52 y 10 dígitos" maxlength="20" required>
+          </div>
+          <div class="campo">
+            <label for="calle">Calle y número *</label>
+            <input id="calle" name="calle" autocomplete="address-line1" maxlength="160" required>
+          </div>
+          <div class="dos">
+            <div class="campo">
+              <label for="colonia">Colonia *</label>
+              <input id="colonia" name="colonia" maxlength="100" required>
+            </div>
+            <div class="campo">
+              <label for="municipio">Municipio *</label>
+              <input id="municipio" name="municipio" autocomplete="address-level2" maxlength="100" required>
+            </div>
+          </div>
+          <div class="campo">
+            <label for="entreCalles">Entre calles</label>
+            <input id="entreCalles" name="entreCalles" maxlength="160">
+          </div>
+          <div class="campo">
+            <label for="referencias">Referencias / indicaciones</label>
+            <textarea id="referencias" name="referencias" maxlength="500" placeholder="Color de la casa, acceso u otra indicación"></textarea>
+          </div>
+          <div class="trampa" aria-hidden="true">
+            <label for="website">Dejar vacío</label>
+            <input id="website" name="website" tabindex="-1" autocomplete="off">
+          </div>
+          <div class="recordar">
+            <label class="check">
+              <input id="recordarDatos" type="checkbox">
+              <span><strong>Recordar mis datos en este dispositivo</strong></span>
+            </label>
+            <p class="ayuda">
+              Úsalo solo en tu dispositivo personal. Guarda nombre, teléfono y dirección en este navegador después de registrar el pedido.
+              No guarda productos ni cantidades. Desmarcar esta opción elimina los datos guardados.
+              Para hacer otro pedido sin salir de esta página, tus datos se conservarán aunque no marques esta opción.
+            </p>
+            <p id="estadoMemoria" class="ayuda" role="status" aria-live="polite"></p>
+          </div>
+          <label class="check">
+            <input id="confirmarDireccion" type="checkbox" required>
+            <span>He revisado mis datos y confirmo que esta es la dirección de entrega para este pedido.</span>
+          </label>
+          <label class="check">
+            <input id="consentimiento" type="checkbox" required>
+            <span>Autorizo usar estos datos para registrar y atender mi pedido y enviarlos por WhatsApp a Hilda Gas.</span>
+          </label>
+          <p class="ayuda">El registro no confirma la entrega. Hilda Gas confirmará disponibilidad y atención por WhatsApp.</p>
+          <div id="estadoFormulario" class="aviso error" role="alert" hidden></div>
+          <div class="acciones">
+            <button id="editarProducto" type="button" class="principal secundario">Volver a editar producto</button>
+            <button id="revisarPedido" type="submit" class="principal">Revisar pedido</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <section id="revision" class="panel" hidden>
+      <p class="eyebrow">Antes de registrar</p>
+      <h3>Revisa tu pedido</h3>
+      <div class="aviso">Todavía no se ha registrado este pedido. Revisa el producto, las cantidades y la dirección.</div>
+      <div id="resumenRevision" class="resumen"></div>
+      <p class="ayuda">El servidor comprobará los precios y límites vigentes. El importe de relleno es estimado.</p>
+      <div id="estadoEnvio" class="aviso" role="status" aria-live="polite" hidden></div>
+      <div class="acciones">
+        <button id="volverEditar" type="button" class="principal secundario ancho">Volver y editar</button>
+        <button id="confirmarPedido" type="button" class="principal ancho">Confirmar y registrar pedido</button>
+      </div>
+      <p class="ayuda">Si el registro tarda o falla por conexión, reintenta el mismo pedido para reutilizar su ID de solicitud.</p>
+    </section>
+
+    <section id="resultado" class="panel" hidden>
+      <div class="final-cabecera">
+        <div class="exito-icono" aria-hidden="true">
+          <svg viewBox="0 0 40 40">
+            <circle cx="20" cy="20" r="19" fill="#179a60"/>
+            <path d="m11 20 6 6 13-14" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>¡Pedido registrado!</h3>
+        <p>Envíalo a WhatsApp para solicitar la confirmación de disponibilidad y entrega.</p>
+      </div>
+      <div class="folio-tarjeta">
+        <div><small>Folio del pedido</small><strong id="folioResultado"></strong></div>
+        <span class="estado-folio">Registrado</span>
+      </div>
+      <p class="subtitulo-resumen">Resumen de tu pedido</p>
+      <div id="resumenFinal" class="resumen"></div>
+      <p id="resultadoMemoria" class="ayuda centrado" role="status"></p>
+      <div class="acciones">
+        <a id="abrirWhatsapp" class="principal whatsapp" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M20.52 3.48A11.85 11.85 0 0 0 12.04 0C5.46 0 .1 5.35.1 11.93c0 2.1.55 4.16 1.6 5.97L0 24l6.25-1.64a11.94 11.94 0 0 0 5.79 1.48h.01c6.58 0 11.94-5.35 11.94-11.93a11.86 11.86 0 0 0-3.47-8.43ZM12.05 21.82a9.9 9.9 0 0 1-5.05-1.38l-.36-.21-3.71.97.99-3.62-.24-.37a9.88 9.88 0 0 1-1.52-5.28c0-5.46 4.44-9.9 9.89-9.9a9.84 9.84 0 0 1 7 2.9 9.83 9.83 0 0 1 2.9 7c0 5.45-4.44 9.89-9.9 9.89Zm5.43-7.41c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.88-.78-1.48-1.75-1.65-2.05-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.87 1.21 3.07c.15.2 2.09 3.19 5.06 4.47.71.31 1.27.49 1.7.63.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35Z"/>
+          </svg>
+          <span>Enviar pedido a WhatsApp</span>
+        </a>
+      </div>
+      <p class="ayuda centrado">
+        Al abrir WhatsApp, pulsa “Enviar” para completar el envío.
+        Si necesitas una corrección, indícala en esa misma conversación.
+      </p>
+      <div class="acciones">
+        <button id="salirInicio" type="button" class="principal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m10 6-6 6 6 6M4 12h16"/>
+          </svg>
+          <span>Volver al inicio</span>
+        </button>
+      </div>
+      <p class="ayuda centrado">
+        Volver al inicio no cancela el pedido registrado.
+        Tus datos de entrega se conservarán para una nueva compra.
+      </p>
+    </section>
+    <p class="pie">
+      Hilda Gas Tampico · Precios en pesos mexicanos.<br>
+      El cobro final de relleno depende del suministro realizado.
+    </p>
+  </main>
+
+  <script>
+  "use strict";
+
+  const CONFIG = {
+    whatsapp:"528332089544",
+    apiUrl:"https://script.google.com/macros/s/AKfycbxC6T2hAts9za-Yp2u1oO21ERt-8RWJpz5_fn3RWqPnZaDvS4ESNFwc_jqbW3IO6rfK8g/exec",
+    preciosUrl:"./precios.json"
+  };
+  const LIMITES_LITROS = Object.freeze({20:40,30:55,45:90});
+  const $ = id => document.getElementById(id);
+  const moneda = n => new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN"}).format(n);
+  const decimal = n => new Intl.NumberFormat("es-MX",{maximumFractionDigits:2}).format(n);
+  const nombres = {
+    relleno:"Relleno",intercambio:"Intercambio de cilindro",
+    estacionario:"Tanque estacionario",cilindro:"Cilindro portátil",
+    litros:"Por litros",pesos:"Por pesos",lleno:"Lleno"
+  };
+  let precios = null;
+  let cargandoPrecios = false;
+  let ocupado = false;
+  let registrado = false;
+  let intento = null;
+  let pedidoRevision = null;
+  let respuestaIncierta = false;
+  let state = {servicio:"",recipiente:""};
+  let controlesPrevios = [];
+
+  function mostrar(id,visible){$(id).hidden = !visible;}
+  function bajarAlPaso(id){
+    requestAnimationFrame(() => {
+      const el = $(id);
+      if(!el || el.hidden) return;
+      const reducir = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      el.scrollIntoView({behavior:reducir ? "auto" : "smooth",block:"start"});
+    });
+  }
+  function mensaje(id,texto,error=false){
+    $(id).textContent = texto;
+    $(id).className = "aviso" + (error ? " error" : "");
+    mostrar(id,true);
+  }
+  function pintarLineas(id,lineas){
+    $(id).replaceChildren(...lineas.map(texto => {
+      const p = document.createElement("p");
+      p.textContent = texto;
+      return p;
+    }));
+  }
+
+  // Se conserva la misma clave para no perder los datos recordados.
+  const rutaMemoria = location.pathname.replace(/\/(?:index\.html)?$/,"");
+  const CLAVE_MEMORIA = "hildaGas:entrega:v1:" + rutaMemoria;
+  const CAMPOS_ENTREGA = {
+    nombre:60,apellido:60,telefono:20,calle:160,
+    colonia:100,municipio:100,entreCalles:160,referencias:500
+  };
+  let datosRecordados = null;
+
+  function depurarDatos(datos){
+    if(!datos || typeof datos !== "object" || Array.isArray(datos)) return null;
+    const copia = {};
+    for(const [campo,limite] of Object.entries(CAMPOS_ENTREGA)){
+      if(typeof datos[campo] !== "string" || datos[campo].length > limite) return null;
+      copia[campo] = datos[campo].trim();
+    }
+    for(const campo of ["nombre","apellido","telefono","calle","colonia","municipio"]){
+      if(!copia[campo]) return null;
+    }
+    if(!/^(?:52)?\d{10}$/.test(copia.telefono.replace(/\D/g,""))) return null;
+    return copia;
+  }
+  function actualizarAvisoMemoria(){
+    mostrar("avisoRecordados",!!datosRecordados);
+    if(datosRecordados) $("saludoRecordado").textContent = "¡Hola, " + datosRecordados.nombre + "!";
+  }
+  function cargarDatosRecordados(){
+    try{
+      const contenido = localStorage.getItem(CLAVE_MEMORIA);
+      if(contenido){
+        const registro = JSON.parse(contenido);
+        if(registro && registro.version === 1) datosRecordados = depurarDatos(registro.datos);
+      }
+    }catch(_){datosRecordados = null;}
+    if(datosRecordados){
+      for(const campo of Object.keys(CAMPOS_ENTREGA)) $(campo).value = datosRecordados[campo];
+      $("recordarDatos").checked = true;
+      $("estadoMemoria").textContent = "Tus datos están precargados. Puedes modificarlos.";
+    }
+    $("confirmarDireccion").checked = false;
+    $("consentimiento").checked = false;
+    actualizarAvisoMemoria();
+  }
+  function eliminarDatosRecordados(limpiarCampos=false){
+    try{localStorage.removeItem(CLAVE_MEMORIA);}
+    catch(_){
+      $("recordarDatos").checked = !!datosRecordados;
+      mensaje("estadoMemoriaGeneral",
+        "El navegador no permitió borrar los datos. Elimínalos desde la configuración de datos de este sitio.",true);
+      return false;
+    }
+    datosRecordados = null;
+    $("recordarDatos").checked = false;
+    if(limpiarCampos){
+      for(const campo of Object.keys(CAMPOS_ENTREGA)) $(campo).value = "";
+      $("confirmarDireccion").checked = false;
+      $("consentimiento").checked = false;
+    }
+    actualizarAvisoMemoria();
+    $("estadoMemoria").textContent = "No hay datos guardados por esta función en este navegador.";
+    return true;
+  }
+  function guardarDatosRecordados(datos){
+    if(!$("recordarDatos").checked){
+      $("resultadoMemoria").textContent =
+        "Tus datos se conservarán al volver al inicio en esta página. No se guardarán para próximas visitas por esta función.";
+      return;
+    }
+    const copia = depurarDatos(datos);
+    if(!copia) return;
+    try{
+      localStorage.setItem(CLAVE_MEMORIA,JSON.stringify({version:1,datos:copia}));
+      datosRecordados = copia;
+      actualizarAvisoMemoria();
+      $("resultadoMemoria").textContent = "Tus datos quedaron guardados en este navegador para tu próximo pedido.";
+    }catch(_){
+      $("resultadoMemoria").textContent =
+        "El pedido se registró, pero el navegador no permitió guardar tus datos. Se conservarán mientras sigas en esta página.";
+    }
+  }
+  $("recordarDatos").addEventListener("change",() => {
+    mostrar("estadoMemoriaGeneral",false);
+    if(!$("recordarDatos").checked) eliminarDatosRecordados(false);
+    else $("estadoMemoria").textContent = "Los datos se guardarán después de registrar correctamente el pedido.";
+  });
+  $("olvidarDatos").addEventListener("click",() => {
+    if(ocupado) return;
+    if(eliminarDatosRecordados(true)){
+      mensaje("estadoMemoriaGeneral",
+        "Se borraron los datos guardados y se limpiaron los campos de entrega. Los pedidos ya registrados no se eliminan.");
+    }
+  });
+  for(const campo of Object.keys(CAMPOS_ENTREGA)){
+    $(campo).addEventListener("input",() => {$("confirmarDireccion").checked = false;});
+  }
+
+  function seleccionar(selector,atributo,valor){
+    document.querySelectorAll(selector).forEach(b => {
+      b.setAttribute("aria-pressed",String(b.getAttribute(atributo) === valor));
+    });
+  }
+  function invalidarEntrega(){
+    mostrar("pasoEntrega",false);
+    mostrar("estadoFormulario",false);
+    pedidoRevision = null;
+  }
+  function resetDetalle(){
+    $("capacidad").value = "";
+    $("cantidad").value = "1";
+    $("modalidad").value = "";
+    $("valor").value = "";
+    $("valor").max = "100000";
+    $("valor").setCustomValidity("");
+    mostrar("campoValor",false);
+    mostrar("avisoLimite",false);
+    mostrar("errorDetalle",false);
+    invalidarEntrega();
+  }
+  function elegirServicio(servicio){
+    if(ocupado || registrado || !precios) return;
+    state = {servicio,recipiente:servicio === "intercambio" ? "cilindro" : ""};
+    seleccionar("[data-service]","data-service",servicio);
+    seleccionar("[data-tank]","data-tank","");
+    resetDetalle();
+    const intercambio = servicio === "intercambio";
+    mostrar("pasoRecipiente",!intercambio);
+    mostrar("pasoDetalle",intercambio);
+    mostrar("campoCapacidad",intercambio);
+    mostrar("campoCantidad",intercambio);
+    mostrar("campoModalidad",false);
+    $("tituloDetalle").textContent = intercambio ? "Selecciona tu cilindro" : "Detalles del relleno";
+    $("numeroDetalle").textContent = intercambio ? "2" : "3";
+    $("numeroEntrega").textContent = intercambio ? "3" : "4";
+    actualizarResumen();
+    bajarAlPaso(intercambio ? "pasoDetalle" : "pasoRecipiente");
+  }
+  function elegirRecipiente(recipiente){
+    if(ocupado || registrado) return;
+    state.recipiente = recipiente;
+    seleccionar("[data-tank]","data-tank",recipiente);
+    resetDetalle();
+    mostrar("pasoDetalle",true);
+    mostrar("campoCapacidad",recipiente === "cilindro");
+    mostrar("campoCantidad",false);
+    mostrar("campoModalidad",true);
+    actualizarResumen();
+    bajarAlPaso("pasoDetalle");
+  }
+  function detalle(){
+    const intercambio = state.servicio === "intercambio";
+    return {
+      servicio:state.servicio,recipiente:state.recipiente,
+      modalidad:intercambio ? "intercambio" : $("modalidad").value,
+      capacidad:state.recipiente === "cilindro" ? Number($("capacidad").value) : 0,
+      cantidad:intercambio ? Number($("cantidad").value) : 1,
+      valor:!intercambio && ["litros","pesos"].includes($("modalidad").value)
+        ? Number($("valor").value) : 0
+    };
+  }
+  function limitePara(d){
+    if(d.servicio !== "relleno" || d.recipiente !== "cilindro" ||
+       !["litros","pesos"].includes(d.modalidad)) return null;
+    return LIMITES_LITROS[d.capacidad] ?? null;
+  }
+  function errorDelDetalle(d){
+    if(!precios) return "Necesitas cargar los precios para continuar.";
+    if(!["relleno","intercambio"].includes(d.servicio) ||
+       !["estacionario","cilindro"].includes(d.recipiente)){
+      return "Selecciona el servicio y el recipiente.";
+    }
+    if(d.recipiente === "cilindro" && ![20,30,45].includes(d.capacidad)){
+      return "Selecciona la capacidad del cilindro.";
+    }
+    if(d.servicio === "intercambio"){
+      return Number.isInteger(d.cantidad) && d.cantidad >= 1 && d.cantidad <= 10
+        ? "" : "La cantidad de cilindros debe ser un entero de 1 a 10.";
+    }
+    if(!["litros","pesos","lleno"].includes(d.modalidad)) return "Selecciona la modalidad de relleno.";
+    if(d.modalidad === "lleno") return "";
+    if(!Number.isFinite(d.valor) || d.valor <= 0 || d.valor > 100000){
+      return "Escribe una cantidad válida, mayor que cero y hasta 100,000.";
+    }
+    const maximo = limitePara(d);
+    if(maximo !== null){
+      const litros = d.modalidad === "litros" ? d.valor : d.valor / precios.lt;
+      if(!Number.isFinite(litros) || litros > maximo + 1e-9){
+        return "El cilindro de " + d.capacidad + " kg tiene un límite de " +
+          maximo + " litros. Reduce los litros o el importe solicitado.";
+      }
+    }
+    return "";
+  }
+  function cotizar(d){
+    if(d.servicio === "intercambio") return {total:precios["c" + d.capacidad] * d.cantidad,litros:null};
+    if(d.modalidad === "litros") return {total:d.valor * precios.lt,litros:d.valor};
+    if(d.modalidad === "pesos") return {total:d.valor,litros:d.valor / precios.lt};
+    if(d.recipiente === "cilindro") return {total:d.capacidad * precios.kg,litros:null};
+    return {total:null,litros:null};
+  }
+  function lineasServicio(d,q){
+    const lineas = ["Servicio: " + nombres[d.servicio],"Recipiente: " + nombres[d.recipiente]];
+    if(d.capacidad) lineas.push("Capacidad: " + d.capacidad + " kg");
+    if(d.servicio === "intercambio") lineas.push("Cantidad de cilindros: " + d.cantidad);
+    else lineas.push("Modalidad: " + nombres[d.modalidad]);
+    if(d.modalidad === "litros") lineas.push("Litros solicitados: " + decimal(d.valor));
+    if(d.modalidad === "pesos"){
+      lineas.push("Monto solicitado: " + moneda(d.valor));
+      if(q.litros !== null) lineas.push("Litros estimados: " + decimal(q.litros));
+    }
+    lineas.push(q.total === null
+      ? "Importe: por determinar según suministro" : "Importe estimado: " + moneda(q.total));
+    if(d.modalidad === "lleno" && d.recipiente === "cilindro"){
+      lineas.push("Estimación para capacidad nominal; el cobro depende del gas suministrado.");
+    }
+    return lineas;
+  }
+  function lineasCliente(datos){
+    const lineas = [
+      "Cliente: " + datos.nombre + " " + datos.apellido,"Teléfono: " + datos.telefono,
+      "Dirección: " + datos.calle,"Colonia: " + datos.colonia,"Municipio: " + datos.municipio
+    ];
+    if(datos.entreCalles) lineas.push("Entre calles: " + datos.entreCalles);
+    if(datos.referencias) lineas.push("Referencias: " + datos.referencias);
+    return lineas;
+  }
+  function actualizarResumen(){
+    const d = detalle();
+    const error = errorDelDetalle(d);
+    const maximo = limitePara(d);
+    $("valor").max = "100000";
+    $("valor").setCustomValidity("");
+    mostrar("avisoLimite",false);
+    mostrar("errorDetalle",false);
+    if(precios && maximo !== null){
+      const maxPesos = Math.floor((maximo * precios.lt + 1e-9) * 100) / 100;
+      $("valor").max = String(Math.min(100000,d.modalidad === "pesos" ? maxPesos : maximo));
+      mensaje("avisoLimite",
+        "Límite para " + d.capacidad + " kg: " + maximo + " litros." +
+        (d.modalidad === "pesos"
+          ? " Con el precio cargado, hasta " + moneda(maxPesos) + " por recipiente."
+          : " La cantidad corresponde a un solo recipiente."));
+    }
+    const tieneValor = $("valor").value !== "" &&
+      d.servicio === "relleno" && ["litros","pesos"].includes(d.modalidad);
+    const cantidadIncorrecta = d.servicio === "intercambio" &&
+      !(Number.isInteger(d.cantidad) && d.cantidad >= 1 && d.cantidad <= 10);
+    if(error && (tieneValor || cantidadIncorrecta)){
+      mensaje("errorDetalle",error,true);
+      if(tieneValor) $("valor").setCustomValidity(error);
+    }
+    $("continuar").disabled = ocupado || registrado || !!error;
+    pintarLineas("resumenServicio",!error
+      ? lineasServicio(d,cotizar(d))
+      : ["Selecciona las opciones y una cantidad válida para ver el resumen."]);
+  }
+  document.querySelectorAll("[data-service]").forEach(b => {
+    b.addEventListener("click",() => elegirServicio(b.dataset.service));
+  });
+  document.querySelectorAll("[data-tank]").forEach(b => {
+    b.addEventListener("click",() => elegirRecipiente(b.dataset.tank));
+  });
+  ["capacidad","cantidad","modalidad","valor"].forEach(id => {
+    $(id).addEventListener("input",() => {
+      if(ocupado || registrado) return;
+      invalidarEntrega();
+      if(id === "modalidad"){
+        const modo = $("modalidad").value;
+        mostrar("campoValor",["litros","pesos"].includes(modo));
+        $("labelValor").textContent = modo === "pesos"
+          ? "¿Cuántos pesos deseas pedir?" : "¿Cuántos litros deseas pedir?";
+        $("valor").value = "";
+      }
+      actualizarResumen();
+    });
+  });
+  $("continuar").addEventListener("click",() => {
+    const error = errorDelDetalle(detalle());
+    if(error || ocupado || registrado){
+      if(error) mensaje("errorDetalle",error,true);
+      return;
+    }
+    mostrar("pasoEntrega",true);
+    bajarAlPaso("pasoEntrega");
+    if(!$("nombre").value) $("nombre").focus({preventScroll:true});
+  });
+  $("editarProducto").addEventListener("click",() => {
+    if(ocupado || registrado) return;
+    invalidarEntrega();
+    bajarAlPaso("pasoDetalle");
+  });
+  function crearId(){
+    if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return Array.from(crypto.getRandomValues(new Uint8Array(16)),
+      b => b.toString(16).padStart(2,"0")).join("");
+  }
+  $("formPedido").addEventListener("submit",event => {
+    event.preventDefault();
+    if(ocupado || registrado) return;
+    mostrar("estadoFormulario",false);
+    const error = errorDelDetalle(detalle());
+    if(error){mensaje("estadoFormulario",error,true);return;}
+    if(!$("formPedido").reportValidity()) return;
+    const datos = Object.fromEntries(new FormData($("formPedido")).entries());
+    Object.keys(datos).forEach(k => {datos[k] = String(datos[k]).trim();});
+    if(!depurarDatos(datos)){
+      mensaje("estadoFormulario",
+        "Revisa los datos de entrega y el teléfono: 10 dígitos o +52 y 10 dígitos.",true);
+      return;
+    }
+    if(datos.website){mensaje("estadoFormulario","Solicitud no válida.",true);return;}
+    const pedido = {...detalle(),datos,consentimiento:$("consentimiento").checked};
+    const firma = JSON.stringify(pedido);
+    if(!intento || intento.firma !== firma){
+      intento = {firma,id:crearId()};
+      respuestaIncierta = false;
+    }
+    pedido.requestId = intento.id;
+    pedidoRevision = pedido;
+    pintarLineas("resumenRevision",[...lineasServicio(pedido,cotizar(pedido)),...lineasCliente(datos)]);
+    mostrar("estadoEnvio",false);
+    mostrar("catalogo",false);
+    mostrar("revision",true);
+    bajarAlPaso("revision");
+  });
+  $("volverEditar").addEventListener("click",() => {
+    if(ocupado || registrado) return;
+    if(respuestaIncierta && !confirm(
+      "El servidor pudo haber registrado el pedido aunque no recibimos respuesta. " +
+      "Es más seguro reintentar sin cambiarlo. Si modificas el pedido, podría crearse otro folio. ¿Volver a editar?"
+    )) return;
+    mostrar("revision",false);
+    mostrar("catalogo",true);
+    mostrar("pasoEntrega",true);
+    bajarAlPaso("pasoEntrega");
+  });
+  function bloquear(valor){
+    ocupado = valor;
+    if(valor){
+      controlesPrevios = Array.from(document.querySelectorAll("button,input,select,textarea"))
+        .map(el => ({el,disabled:el.disabled}));
+      controlesPrevios.forEach(({el}) => {el.disabled = true;});
+    }else{
+      controlesPrevios.forEach(({el,disabled}) => {el.disabled = disabled;});
+      controlesPrevios = [];
+      actualizarResumen();
+    }
+    $("confirmarPedido").textContent = valor ? "Registrando pedido…" : "Confirmar y registrar pedido";
+  }
+  function enlaceWhatsapp(texto){
+    return "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(texto);
+  }
+  $("confirmarPedido").addEventListener("click",async () => {
+    if(ocupado || registrado || !pedidoRevision) return;
+    if(!navigator.onLine){
+      mostrar("pwaOffline",true);
+      mensaje("estadoEnvio","No hay conexión. Conéctate y vuelve a confirmar el mismo pedido.",true);
+      return;
+    }
+    if(!CONFIG.apiUrl){mensaje("estadoEnvio","Falta configurar la conexión de registro.",true);return;}
+    const pedido = pedidoRevision;
+    const errorDetalle = errorDelDetalle(pedido);
+    if(errorDetalle){
+      mensaje("estadoEnvio",errorDetalle + " Vuelve y edita el pedido.",true);
+      return;
+    }
+    bloquear(true);
+    mensaje("estadoEnvio","Guardando el pedido. No cierres esta página.");
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(),45000);
+    let rechazoConfirmado = false;
+    try{
+      const response = await fetch(CONFIG.apiUrl,{
+        method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body:JSON.stringify(pedido),redirect:"follow",
+        signal:controller.signal,credentials:"omit"
+      });
+      if(!response.ok) throw new Error("El servicio no respondió correctamente.");
+      const result = await response.json();
+      if(!result.ok){
+        rechazoConfirmado = true;
+        throw new Error(result.error || "No se pudo registrar el pedido.");
+      }
+      if(typeof result.folio !== "string" || !/^HG-\d{6,}$/.test(result.folio)){
+        throw new Error("El servidor no devolvió un folio válido.");
+      }
+      if(result.total !== null &&
+        (typeof result.total !== "number" || !Number.isFinite(result.total) || result.total < 0)){
+        throw new Error("La cotización del servidor no es válida.");
+      }
+      const litros = result.litros ?? null;
+      if(litros !== null &&
+        (typeof litros !== "number" || !Number.isFinite(litros) || litros < 0)){
+        throw new Error("La cotización de litros no es válida.");
+      }
+      const servicio = lineasServicio(pedido,{total:result.total,litros});
+      const cliente = lineasCliente(pedido.datos);
+      const texto = [
+        "*PEDIDO HILDA GAS TAMPICO*","*Folio: " + result.folio + "*",
+        "",...servicio,"",...cliente,"","Solicito confirmación de disponibilidad y entrega."
+      ].join("\n");
+      $("folioResultado").textContent = result.folio;
+      pintarLineas("resumenFinal",[...servicio,...cliente]);
+      $("abrirWhatsapp").href = enlaceWhatsapp(texto);
+      guardarDatosRecordados(pedido.datos);
+      registrado = true;
+      respuestaIncierta = false;
+      mostrar("revision",false);
+      mostrar("catalogo",false);
+      mostrar("resultado",true);
+      bajarAlPaso("resultado");
+    }catch(error){
+      respuestaIncierta = !rechazoConfirmado;
+      const motivo = error.name === "AbortError" ? "La respuesta tardó demasiado." : error.message;
+      mensaje("estadoEnvio",motivo + (rechazoConfirmado
+        ? " Revisa el pedido y vuelve a intentar."
+        : " El servidor pudo haberlo registrado. Reintenta sin cambiar los datos para reutilizar la misma solicitud y evitar duplicados."),true);
+    }finally{
+      clearTimeout(timer);
+      bloquear(false);
+      if(registrado){
+        document.querySelectorAll("[data-service],[data-tank]").forEach(b => {b.disabled = true;});
+      }
+    }
+  });
+
+  // Reinicia el producto sin limpiar los datos de entrega.
+  function reiniciarPedido(){
+    if(ocupado) return;
+    registrado = false;
+    intento = null;
+    pedidoRevision = null;
+    respuestaIncierta = false;
+    state = {servicio:"",recipiente:""};
+    resetDetalle();
+    seleccionar("[data-service]","data-service","");
+    seleccionar("[data-tank]","data-tank","");
+    mostrar("pasoRecipiente",false);
+    mostrar("pasoDetalle",false);
+    mostrar("campoCapacidad",false);
+    mostrar("campoCantidad",false);
+    mostrar("campoModalidad",false);
+    mostrar("revision",false);
+    mostrar("resultado",false);
+    mostrar("estadoEnvio",false);
+    mostrar("estadoMemoriaGeneral",false);
+    mostrar("catalogo",true);
+    $("folioResultado").textContent = "";
+    $("resumenFinal").replaceChildren();
+    $("resumenRevision").replaceChildren();
+    $("abrirWhatsapp").removeAttribute("href");
+    $("resultadoMemoria").textContent = "";
+    $("confirmarDireccion").checked = false;
+    $("consentimiento").checked = false;
+    $("website").value = "";
+    actualizarAvisoMemoria();
+    if(Object.keys(CAMPOS_ENTREGA).some(campo => $(campo).value.trim())){
+      mensaje("estadoMemoriaGeneral",
+        "Volviste al inicio. El pedido registrado no se cancela. Tus datos de entrega siguen disponibles para un nuevo pedido.");
+    }
+    cargarPrecios();
+    bajarAlPaso("inicio");
+  }
+  $("salirInicio").addEventListener("click",reiniciarPedido);
+
+  async function cargarPrecios(){
+    if(cargandoPrecios) return;
+    cargandoPrecios = true;
+    precios = null;
+    mostrar("errorPrecios",false);
+    mostrar("accionesPrecios",false);
+    $("precioKg").textContent = "—";
+    $("precioLt").textContent = "—";
+    $("fechaPrecios").textContent = "Consultando precios…";
+    document.querySelectorAll("[data-service]").forEach(b => {b.disabled = true;});
+    actualizarResumen();
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(),20000);
+    try{
+      const url = new URL(CONFIG.preciosUrl,location.href);
+      url.searchParams.set("v",Date.now());
+      const response = await fetch(url,{cache:"no-store",signal:controller.signal});
+      if(!response.ok) throw new Error("No se encontró precios.json.");
+      const p = await response.json();
+      for(const key of ["kg","lt","c20","c30","c45"]){
+        if(typeof p[key] !== "number" || !Number.isFinite(p[key]) || p[key] <= 0){
+          throw new Error("El campo " + key + " debe ser un número positivo.");
+        }
+      }
+      if(typeof p.date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(p.date)){
+        throw new Error("La fecha debe tener formato AAAA-MM-DD.");
+      }
+      const fecha = new Date(p.date + "T00:00:00Z");
+      if(!Number.isFinite(fecha.getTime()) || fecha.toISOString().slice(0,10) !== p.date){
+        throw new Error("La fecha de precios no es válida.");
+      }
+      precios = p;
+      const [year,month,day] = p.date.split("-");
+      $("precioKg").textContent = moneda(p.kg);
+      $("precioLt").textContent = moneda(p.lt);
+      $("fechaPrecios").textContent = "Actualización: " + day + "/" + month + "/" + year;
+      document.querySelectorAll("[data-service]").forEach(b => {b.disabled = ocupado || registrado;});
+    }catch(error){
+      $("fechaPrecios").textContent = "Precios no disponibles";
+      mensaje("errorPrecios",
+        (error.name === "AbortError" ? "La consulta de precios tardó demasiado." : error.message) +
+        " No se aceptan pedidos sin precios cargados.",true);
+      mostrar("accionesPrecios",true);
+    }finally{
+      clearTimeout(timer);
+      cargandoPrecios = false;
+      actualizarResumen();
+    }
+  }
+  $("reintentarPrecios").addEventListener("click",() => {if(!ocupado) cargarPrecios();});
+  window.addEventListener("beforeunload",event => {
+    if(!ocupado) return;
+    event.preventDefault();
+    event.returnValue = "";
+  });
+  cargarDatosRecordados();
+  cargarPrecios();
+  </script>
+
+  <script>
+  (() => {
+    "use strict";
+    const installBox = document.getElementById("pwaInstallBox");
+    const installButton = document.getElementById("pwaInstallButton");
+    const help = document.getElementById("pwaInstallHelp");
+    const offlineBox = document.getElementById("pwaOffline");
+    const updateBox = document.getElementById("pwaUpdateBox");
+    const updateButton = document.getElementById("pwaUpdateButton");
+    const standalone = window.matchMedia("(display-mode: standalone)");
+    let pendingInstall = null;
+    let registration = null;
+    let refreshing = false;
+    let updateRequested = false;
+
+    function installedView(){
+      installBox.hidden = standalone.matches || navigator.standalone === true;
+    }
+    installedView();
+    if(standalone.addEventListener) standalone.addEventListener("change",installedView);
+
+    const dispositivoApple = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    if(dispositivoApple){
+      help.textContent = "En Safari: Compartir → Agregar a pantalla de inicio. También puedes pedir sin instalar.";
+    }else if(/Macintosh/.test(navigator.userAgent)){
+      help.textContent = "En versiones compatibles de Safari: Archivo → Agregar al Dock. En Chrome, busca la opción de instalar. También puedes pedir sin instalar.";
+    }
+    window.addEventListener("beforeinstallprompt",event => {
+      event.preventDefault();
+      pendingInstall = event;
+      installButton.hidden = false;
+      help.textContent = "Agrega Hilda Gas Tampico a tu pantalla de inicio.";
+    });
+    installButton.addEventListener("click",async () => {
+      if(!pendingInstall) return;
+      const prompt = pendingInstall;
+      pendingInstall = null;
+      installButton.hidden = true;
+      try{
+        await prompt.prompt();
+        await prompt.userChoice;
+      }catch(_){help.textContent = "Puedes instalar desde el menú del navegador.";}
+    });
+    window.addEventListener("appinstalled",() => {
+      installBox.hidden = true;
+      pendingInstall = null;
+    });
+    function connectionView(){offlineBox.hidden = navigator.onLine;}
+    connectionView();
+    window.addEventListener("offline",connectionView);
+    window.addEventListener("online",() => {
+      connectionView();
+      if(!precios && !ocupado && !cargandoPrecios) cargarPrecios();
+    });
+    function offerUpdate(){
+      if(registration && registration.waiting) updateBox.hidden = false;
+    }
+    updateButton.addEventListener("click",() => {
+      if(!registration || !registration.waiting) return;
+      if(ocupado){
+        alert("Espera a que termine el registro antes de actualizar.");
+        return;
+      }
+      if(!confirm(
+        "La página se recargará. Los datos no guardados podrían perderse. " +
+        "Los pedidos ya registrados no se eliminan. ¿Actualizar ahora?"
+      )) return;
+      updateRequested = true;
+      registration.waiting.postMessage({type:"SKIP_WAITING"});
+    });
+    if(!("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.addEventListener("controllerchange",() => {
+      if(!updateRequested || refreshing) return;
+      refreshing = true;
+      location.reload();
+    });
+    window.addEventListener("load",async () => {
+      try{
+        registration = await navigator.serviceWorker.register("./sw.js",{
+          scope:"./",updateViaCache:"none"
+        });
+        offerUpdate();
+        registration.addEventListener("updatefound",() => {
+          const worker = registration.installing;
+          if(!worker) return;
+          worker.addEventListener("statechange",() => {
+            if(worker.state === "installed" && navigator.serviceWorker.controller) offerUpdate();
+          });
+        });
+        const checkUpdate = () => registration.update().catch(() => {});
+        window.addEventListener("online",checkUpdate);
+        document.addEventListener("visibilitychange",() => {
+          if(document.visibilityState === "visible" && navigator.onLine) checkUpdate();
+        });
+      }catch(error){
+        console.warn("PWA: no se pudo registrar el service worker.",error);
+      }
+    });
+  })();
+  </script>
+</body>
+</html>
