@@ -1,14 +1,13 @@
 "use strict";
 
-// Nueva versión: diseño profesional con logo original.
+// Nueva versión: logo original más grande.
 const CACHE_PREFIX = "hilda-pwa:" + self.registration.scope + ":";
-const CACHE_NAME = CACHE_PREFIX + "v20261023-03";
+const CACHE_NAME = CACHE_PREFIX + "v20261023-04";
 
 const BASE = new URL(self.registration.scope);
 const INDEX = new URL("index.html", BASE).href;
 const PRECIOS_PATH = new URL("precios.json", BASE).pathname;
 
-// El catálogo es indispensable para instalar esta versión.
 const REQUIRED_ASSETS = [
   INDEX
 ];
@@ -51,7 +50,7 @@ self.addEventListener("install", event => {
       }
     }));
 
-    // La actualización espera autorización desde el catálogo.
+    // Espera autorización desde el botón "Actualizar aplicación".
   })());
 });
 
@@ -81,11 +80,11 @@ self.addEventListener("fetch", event => {
   const request = event.request;
   const url = new URL(request.url);
 
-  // Nunca interceptar pedidos POST ni solicitudes a Apps Script.
+  // No interceptar pedidos POST ni solicitudes externas a Apps Script.
   if (request.method !== "GET" || url.origin !== BASE.origin) return;
   if (!url.href.startsWith(BASE.href)) return;
 
-  // Los precios se consultan por internet y no se guardan en caché.
+  // Los precios se consultan en línea y no se guardan en caché.
   if (url.pathname === PRECIOS_PATH) {
     event.respondWith(fetch(request, {cache:"no-store"}));
     return;
