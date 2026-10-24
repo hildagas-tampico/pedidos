@@ -1,20 +1,22 @@
 "use strict";
 
-// Nueva versión: logo original más grande.
+// Nueva versión: bienvenida azul y logo rectangular.
 const CACHE_PREFIX = "hilda-pwa:" + self.registration.scope + ":";
-const CACHE_NAME = CACHE_PREFIX + "v20261023-04";
+const CACHE_NAME = CACHE_PREFIX + "v20261024-01";
 
 const BASE = new URL(self.registration.scope);
 const INDEX = new URL("index.html", BASE).href;
+const INDEX_PATH = new URL(INDEX).pathname;
+const LOGO = new URL("logo.png", BASE).href;
 const PRECIOS_PATH = new URL("precios.json", BASE).pathname;
 
 const REQUIRED_ASSETS = [
   INDEX
 ];
 
-// Si falta un recurso opcional, no bloquea la actualización.
+// Si falta un recurso opcional, no bloquea la instalación.
 const OPTIONAL_ASSETS = [
-  new URL("logo.png", BASE).href,
+  LOGO,
   new URL("manifest.webmanifest", BASE).href,
   new URL("icons/icon-192.png", BASE).href,
   new URL("icons/icon-512.png", BASE).href,
@@ -46,11 +48,12 @@ self.addEventListener("install", event => {
           await cache.put(url, response);
         }
       } catch (_) {
-        // Un recurso opcional ausente no impide instalar la actualización.
+        // Un recurso opcional ausente no bloquea la actualización.
       }
     }));
 
-    // Espera autorización desde el botón "Actualizar aplicación".
+    // Espera autorización desde "Actualizar aplicación".
+    // No fuerza una recarga durante un pedido.
   })());
 });
 
@@ -66,6 +69,7 @@ self.addEventListener("activate", event => {
         .map(key => caches.delete(key))
     );
 
+    // Esto no elimina los datos recordados en localStorage.
     await self.clients.claim();
   })());
 });
@@ -80,11 +84,11 @@ self.addEventListener("fetch", event => {
   const request = event.request;
   const url = new URL(request.url);
 
-  // No interceptar pedidos POST ni solicitudes externas a Apps Script.
+  // No interceptar pedidos POST ni solicitudes externas.
   if (request.method !== "GET" || url.origin !== BASE.origin) return;
-  if (!url.href.startsWith(BASE.href)) return;
+  if (!url.pathname.startsWith(BASE.pathname)) return;
 
-  // Los precios se consultan en línea y no se guardan en caché.
+  // Los precios siempre se consultan en línea.
   if (url.pathname === PRECIOS_PATH) {
     event.respondWith(fetch(request, {cache:"no-store"}));
     return;
@@ -92,7 +96,7 @@ self.addEventListener("fetch", event => {
 
   const home =
     url.pathname === BASE.pathname ||
-    url.pathname === new URL("index.html", BASE).pathname;
+    url.pathname === INDEX_PATH;
 
   if (request.mode === "navigate" && home) {
     event.respondWith((async () => {
@@ -130,6 +134,36 @@ self.addEventListener("fetch", event => {
 
   const canonical = url.origin + url.pathname;
 
+  // Logo: red primero para evitar mostrar uno antiguo.
+  if (canonical === LOGO) {
+    event.respondWith((async () => {
+      try {
+        const response = await fetch(request, {cache:"no-store"});
+
+        if (response.ok) return response;
+
+        const saved = await caches.match(LOGO, {
+          cacheName:CACHE_NAME
+        });
+
+        return saved || response;
+      } catch (_) {
+        const saved = await caches.match(LOGO, {
+          cacheName:CACHE_NAME
+        });
+
+        if (saved) return saved;
+
+        return new Response("", {
+          status:503,
+          statusText:"Logo no disponible"
+        });
+      }
+    })());
+
+    return;
+  }
+
   if (!ASSETS.includes(canonical)) return;
 
   event.respondWith((async () => {
@@ -137,6 +171,6 @@ self.addEventListener("fetch", event => {
       cacheName:CACHE_NAME
     });
 
-    return saved || fetch(request);
+    return saved || fetch(request, {cache:"no-cache"});
   })());
 });
