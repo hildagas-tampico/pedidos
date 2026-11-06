@@ -400,7 +400,7 @@
       <div id="avisoRecordados" class="aviso" hidden>
         <strong id="saludoRecordado"></strong>
         <p class="ayuda">Tus datos están precargados. Revisa la dirección antes de registrar tu pedido.</p>
-        <button id="olvidarDatos" type="button" class="principal secundario">Olvidar mis datos</button>
+        
       </div>
       <div class="introduccion" id="inicio">
         <p class="eyebrow">Tu pedido, más fácil</p>
@@ -749,13 +749,7 @@
     if(!$("recordarDatos").checked) eliminarDatosRecordados(false);
     else $("estadoMemoria").textContent = "Los datos se guardarán después de registrar correctamente el pedido.";
   });
-  $("olvidarDatos").addEventListener("click",() => {
-    if(ocupado) return;
-    if(eliminarDatosRecordados(true)){
-      mensaje("estadoMemoriaGeneral",
-        "Se borraron los datos guardados y se limpiaron los campos de entrega. Los pedidos ya registrados no se eliminan.");
-    }
-  });
+  
   for(const campo of Object.keys(CAMPOS_ENTREGA)){
     $(campo).addEventListener("input",() => {$("confirmarDireccion").checked = false;});
   }
@@ -1183,6 +1177,100 @@
     event.preventDefault();
     event.returnValue = "";
   });
+// Guía visual de los detalles del pedido. No avanza ni registra automáticamente.
+(() => {
+  const camposNumericos = ["valor", "cantidad"];
+  let movimientoPendiente = null;
+
+  function desplazarHasta(elemento) {
+    if (!elemento || elemento.closest("[hidden]")) return;
+    requestAnimationFrame(() => {
+      const reducir = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+      elemento.scrollIntoView({
+        behavior: reducir ? "auto" : "smooth",
+        block: "center"
+      });
+    });
+  }
+
+  function mostrarSiguienteCampo(id) {
+    const campo = $(id);
+    if (!campo || campo.closest("[hidden]")) return;
+    desplazarHasta(campo.closest(".campo") || campo);
+  }
+
+  function terminarCantidad(id, explicito) {
+    if (ocupado || registrado || $("pasoDetalle").hidden) return;
+    const campo = $(id);
+    if (!campo || campo.closest("[hidden]")) return;
+
+    actualizarResumen();
+    const error = errorDelDetalle(detalle());
+
+    if (error || !campo.validity.valid || $("continuar").disabled) {
+      if (explicito) {
+        mensaje(
+          "errorDetalle",
+          error || "Revisa la cantidad indicada.",
+          true
+        );
+        desplazarHasta($("errorDetalle"));
+      }
+      return;
+    }
+
+    // Cierra el teclado si el campo todavía conserva el foco.
+    if (document.activeElement === campo) campo.blur();
+    desplazarHasta($("continuar"));
+  }
+
+  camposNumericos.forEach(id => {
+    const campo = $(id);
+
+    campo.addEventListener("keydown", event => {
+      if (event.key !== "Enter" || event.isComposing) return;
+      event.preventDefault();
+      clearTimeout(movimientoPendiente);
+      terminarCantidad(id, true);
+    });
+
+    // Cubre terminar el campo o cerrar el teclado cuando provoca pérdida de foco.
+    // No interfiere al pulsar otro botón ni al pasar a otro campo.
+    campo.addEventListener("blur", () => {
+      clearTimeout(movimientoPendiente);
+      movimientoPendiente = setTimeout(() => {
+        const activo = document.activeElement;
+        if (activo && activo !== document.body &&
+            activo !== document.documentElement) return;
+        terminarCantidad(id, false);
+      }, 180);
+    });
+  });
+
+  $("capacidad").addEventListener("change", () => {
+    if (ocupado || registrado || !$("capacidad").value) return;
+    actualizarResumen();
+    if (state.servicio === "intercambio") {
+      mostrarSiguienteCampo("cantidad");
+    } else {
+      mostrarSiguienteCampo("modalidad");
+    }
+  });
+
+  $("modalidad").addEventListener("change", () => {
+    if (ocupado || registrado) return;
+    actualizarResumen();
+    const modo = $("modalidad").value;
+
+    if (["litros", "pesos"].includes(modo)) {
+      mostrarSiguienteCampo("valor");
+    } else if (modo === "lleno" && !$("continuar").disabled) {
+      desplazarHasta($("continuar"));
+    }
+  });
+})();
   cargarDatosRecordados();
   cargarPrecios();
   </script>
